@@ -62,3 +62,8 @@ requests.post(
     "xc-token": metrics_token,
   }
 )
+
+if response.ok:
+  print("export done")
+else:
+  print("export failed")
