@@ -28,7 +28,7 @@ for metric_name, query in config["queries"].items():
   if content_sql:
     condition_keyword = "and" if re.search("where", content_sql, re.IGNORECASE) else "where"
     db_result = subprocess.check_output(["psql", os.environ["DBURI"], "-Atc", f"{content_sql} {condition_keyword} \"{timestamp_col}\" between '{interval_start}' and '{interval_end}'"]).decode().split("\n")
-    db_result = filter(lambda x: x != "", db_result)
+    db_result = filter(lambda single_result: single_result != "", db_result)
 
     content_metric = {}
     for result in db_result:
@@ -56,14 +56,16 @@ for metric_name, query in config["queries"].items():
     condition_keyword = "and" if re.search("where", count_sql, re.IGNORECASE) else "where"
     metrics[metric_name] = json.loads(subprocess.check_output(["psql", os.environ["DBURI"], "-Atc", f"{count_sql} {condition_keyword} \"{timestamp_col}\" between '{interval_start}' and '{interval_end}'"]))
 
-    requests.post(
-      url=config["endpoint"],
-      json={
-        "startInterval": interval_start,
-        "endInterval": interval_end,
-        **metrics,
-      },
-      headers={
-        "xc-token": metrics_token,
-      }
-    )
+
+if metrics:
+  requests.post(
+    url=config["endpoint"],
+    json={
+      "startInterval": interval_start,
+      "endInterval": interval_end,
+      **metrics,
+    },
+    headers={
+      "xc-token": metrics_token,
+    }
+  )
