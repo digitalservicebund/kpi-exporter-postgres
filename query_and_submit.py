@@ -55,7 +55,7 @@ if count_metrics:
     **count_metrics,
   })
 
-requests.post(
+response = requests.post(
   url=config["endpoint"],
   json=metrics,
   headers={
