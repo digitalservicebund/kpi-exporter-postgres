@@ -18,7 +18,8 @@ one_hour_ago = dt.datetime.now() - dt.timedelta(hours=1)
 interval_start = one_hour_ago.strftime("%Y-%m-%dT%H:00:00Z")
 interval_end = one_hour_ago.strftime("%Y-%m-%dT%H:59:59Z")
 
-metrics = {}
+count_metrics = {}
+metrics = []
 
 for metric_name, query in config["queries"].items():
   count_sql = query.get("countSql")
@@ -31,6 +32,7 @@ for metric_name, query in config["queries"].items():
     db_result = filter(lambda single_result: single_result != "", db_result)
 
     content_metric = {}
+
     for result in db_result:
       category, content, created_at = result.split("|")
 
@@ -38,34 +40,25 @@ for metric_name, query in config["queries"].items():
       content_metric["content"] = content
       content_metric["date"] = created_at
 
-      json_output = {
-        "createdAt": interval_start,
-        "endInterval": interval_end,
+      metrics.append({
         **content_metric
-      }
-
-      requests.post(
-        url=config["endpoint"],
-        json=json_output,
-        headers={
-          "xc-token": metrics_token,
-        }
-      )
+      })
 
   else:
     condition_keyword = "and" if re.search("where", count_sql, re.IGNORECASE) else "where"
-    metrics[metric_name] = json.loads(subprocess.check_output(["psql", os.environ["DBURI"], "-Atc", f"{count_sql} {condition_keyword} \"{timestamp_col}\" between '{interval_start}' and '{interval_end}'"]))
+    count_metrics[metric_name] = json.loads(subprocess.check_output(["psql", os.environ["DBURI"], "-Atc", f"{count_sql} {condition_keyword} \"{timestamp_col}\" between '{interval_start}' and '{interval_end}'"]))
 
+if count_metrics:
+  metrics.append({
+    "startInterval": interval_start,
+    "endInterval": interval_end,
+    **count_metrics,
+  })
 
-if metrics:
-  requests.post(
-    url=config["endpoint"],
-    json={
-      "startInterval": interval_start,
-      "endInterval": interval_end,
-      **metrics,
-    },
-    headers={
-      "xc-token": metrics_token,
-    }
-  )
+requests.post(
+  url=config["endpoint"],
+  json=metrics,
+  headers={
+    "xc-token": metrics_token,
+  }
+)
