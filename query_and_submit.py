@@ -26,7 +26,7 @@ for metric_name, query in config["queries"].items():
   timestamp_col = query["timestampColumn"]
   metrics[metric_name] = json.loads(subprocess.check_output(["psql", os.environ["DBURI"], "-Atc", f"{sql} {condition_keyword} \"{timestamp_col}\" between '{interval_start}' and '{interval_end}'"]))
 
-requests.post(
+response = requests.post(
   url=config["endpoint"],
   json={
     "startInterval": interval_start,
@@ -37,3 +37,8 @@ requests.post(
     "xc-token": metrics_token,
   }
 )
+
+if response.ok:
+  print("export done")
+else:
+  print("export failed")
