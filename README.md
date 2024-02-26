@@ -11,7 +11,7 @@ queries:
     timestampColumn: createdAt
 ```
 
-Set the `DBURI` environment variable to a connection string libpq recognises.
+Set the `DBURI` environment variable to a connection string libpq recognises. Alternatively, set `DB_NAME`, `DB_HOST`, `DB_USER`, `DB_PASSWORD` and `DB_PORT`.
 
 This script assumes to be scheduled hourly. It collects data for defined queries for the last hour. So you probably want to use it with a cronjob like this:
 
