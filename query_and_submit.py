@@ -8,6 +8,7 @@ import yaml
 
 
 def read_secret_file(key):
+    try:
         with open(key, "r") as secret_file:
             return secret_file.read().strip()
     except Exception as e:
