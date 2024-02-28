@@ -6,22 +6,30 @@ import requests
 import subprocess
 import yaml
 
-metrics_token = os.environ.get("METRICS_WEBHOOK_TOKEN")
+
+def read_secret_file(key):
+        with open(key, "r") as secret_file:
+            return secret_file.read().strip()
+    except Exception as e:
+        raise SecretReadError(f"Error reading secret from {filepath}: {str(e)}")
+
+
+with open("/opt/config.yaml") as f:
+    config = yaml.safe_load(f)
+
+metrics_token = read_secret_file(config["endpoint-token-secret-file"])
 
 db_uri = (
     os.environ.get("DBURI")
     if "DBURI" in os.environ
     else (
-        f"postgresql://{os.environ['DB_USER']}"
-        f":{os.environ['DB_PASSWORD']}"
-        f"@{os.environ['DB_HOST']}"
-        f":{os.environ['DB_PORT']}"
-        f"/{os.environ['DB_NAME']}"
+        f"postgresql://{read_secret_file(config['db']['user-secret-file'])}"
+        f":{read_secret_file(config['db']['password-secret-file'])}"
+        f"@{config['db']['host']}"
+        f":{config['db']['port']}"
+        f"/{config['db']['name']}"
     )
 )
-
-with open("/opt/config.yaml") as f:
-    config = yaml.safe_load(f)
 
 if "preExecuteScript" in config:
     os.system(config["preExecuteScript"])
