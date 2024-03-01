@@ -5,7 +5,7 @@ import re
 import requests
 import subprocess
 import yaml
-
+import urllib.parse
 
 def read_secret_file(key):
     try:
@@ -24,8 +24,8 @@ db_uri = (
     os.environ.get("DBURI")
     if "DBURI" in os.environ
     else (
-        f"postgresql://{read_secret_file(config['db']['user-secret-file'])}"
-        f":{read_secret_file(config['db']['password-secret-file'])}"
+        f"postgresql://{urllib.parse.quote(read_secret_file(config['db']['user-secret-file']))}"
+        f":{urllib.parse.quote(read_secret_file(config['db']['password-secret-file']))}"
         f"@{config['db']['host']}"
         f":{config['db']['port']}"
         f"/{config['db']['name']}"
