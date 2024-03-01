@@ -12,7 +12,7 @@ def read_secret_file(key):
         with open(key, "r") as secret_file:
             return secret_file.read().strip()
     except Exception as e:
-        raise SecretReadError(f"Error reading secret from {filepath}: {str(e)}")
+        raise ValueError(f"Error reading secret from {key}: {str(e)}")
 
 
 with open("/opt/config.yaml") as f:
