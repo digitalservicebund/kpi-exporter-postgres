@@ -7,6 +7,7 @@ import subprocess
 import yaml
 import urllib.parse
 
+
 def read_secret_file(key):
     try:
         with open(key, "r") as secret_file:
@@ -45,16 +46,22 @@ for metric_name, query in config["queries"].items():
     sql = query["countSql"]
     condition_keyword = "and" if re.search("where", sql, re.IGNORECASE) else "where"
     timestamp_col = query["timestampColumn"]
-    metrics[metric_name] = json.loads(
-        subprocess.check_output(
-            [
-                "psql",
-                db_uri,
-                "-Atc",
-                f"{sql} {condition_keyword} \"{timestamp_col}\" between '{interval_start}' and '{interval_end}'",
-            ]
+
+    try:
+        metrics[metric_name] = json.loads(
+            subprocess.check_output(
+                [
+                    "psql",
+                    db_uri,
+                    "-Atc",
+                    f"{sql} {condition_keyword} \"{timestamp_col}\" between '{interval_start}' and '{interval_end}'",
+                ]
+            )
         )
-    )
+    except subprocess.CalledProcessError as e:
+        print(f"Command execution failed with exit status {e.returncode}.")
+    except Exception as e:
+        print("An error occurred while executing the script")
 
 response = requests.post(
     url=config["endpoint"],
