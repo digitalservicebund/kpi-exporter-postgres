@@ -1,4 +1,4 @@
-FROM 3.13.6-alpine3.22
+FROM python:3.13.6-alpine3.22
 
 RUN apk update \
   && apk add --no-cache jq postgresql-client \
